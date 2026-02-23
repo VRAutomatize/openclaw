@@ -1,0 +1,14 @@
+---
+description: Repo é fork; nunca push nem PR para o projeto base (upstream)
+alwaysApply: true
+---
+
+# Fork: só origin, nunca upstream
+
+Este repositório é um **fork** (origin = seu repo; upstream = openclaw/openclaw).
+
+- **Nunca** sugerir ou executar push para `upstream`. Nunca abrir PR contra o repositório base (openclaw/openclaw).
+- **Sempre** considerar que push é para `origin` (seu fork). Commits e publicações ficam só no seu repo.
+- **Atualizar** com o projeto base apenas puxando: `git fetch upstream` e depois `git merge upstream/main` ou `git rebase upstream/main` no branch desejado. Nunca enviar nada para lá.
+
+Resumo: trabalhe e publique apenas em origin; use upstream só para trazer atualizações (fetch + merge/rebase).
