@@ -1,0 +1,15 @@
+---
+description: Deploy deste projeto é via EasyPanel a partir do repo GitHub
+alwaysApply: true
+---
+
+# Deploy: EasyPanel + GitHub
+
+Este repositório é preparado para rodar no **EasyPanel** usando o código do **GitHub** (build a partir do Dockerfile na raiz).
+
+- **Plataforma de deploy**: EasyPanel (repo GitHub).
+- **Porta do gateway**: 18789.
+- **Env em produção**: `OPENCLAW_GATEWAY_TOKEN` e `OPENCLAW_GATEWAY_BIND=lan`.
+- **Persistência**: volume em `/home/node/.openclaw`.
+
+Guia completo: [EASYPANEL.md](/EASYPANEL.md) na raiz do projeto.

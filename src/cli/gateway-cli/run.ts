@@ -223,7 +223,10 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
     defaultRuntime.exit(1);
     return;
   }
-  const bindRaw = toOptionString(opts.bind) ?? cfg.gateway?.bind ?? "loopback";
+  const bindRaw =
+    toOptionString(opts.bind) ??
+    cfg.gateway?.bind ??
+    (process.env.OPENCLAW_GATEWAY_BIND?.trim() || "loopback");
   const bind =
     bindRaw === "loopback" ||
     bindRaw === "lan" ||
@@ -358,7 +361,7 @@ export function addGatewayRunCommand(cmd: Command): Command {
     .option("--port <port>", "Port for the gateway WebSocket")
     .option(
       "--bind <mode>",
-      'Bind mode ("loopback"|"lan"|"tailnet"|"auto"|"custom"). Defaults to config gateway.bind (or loopback).',
+      'Bind mode ("loopback"|"lan"|"tailnet"|"auto"|"custom"). Defaults to config gateway.bind, OPENCLAW_GATEWAY_BIND, or loopback.',
     )
     .option(
       "--token <token>",
