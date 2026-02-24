@@ -42,6 +42,12 @@ RUN if [ -n "$OPENCLAW_INSTALL_BROWSER" ]; then \
       rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*; \
     fi
 
+# ALSA libraries for sag (ElevenLabs TTS CLI) and other audio tools
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      libasound2 libasound2-dev alsa-utils && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
+
 USER node
 COPY --chown=node:node . .
 RUN pnpm build
