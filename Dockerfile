@@ -43,9 +43,11 @@ RUN if [ -n "$OPENCLAW_INSTALL_BROWSER" ]; then \
     fi
 
 # ALSA + ffmpeg for sag (ElevenLabs TTS) and WhatsApp-compatible audio conversion
+# go, jq, python3, unzip/zip for skills and agent tasks; cron for scheduled jobs
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-      libasound2 libasound2-dev alsa-utils ffmpeg && \
+      libasound2 libasound2-dev alsa-utils ffmpeg \
+      golang-go jq python3 python3-venv unzip zip cron && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
 # summarize CLI (persistent across container rebuilds; used by summarize skill)
