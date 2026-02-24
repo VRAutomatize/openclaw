@@ -496,10 +496,16 @@ export function resolveAllowedModelRef(params: {
     return { error: `invalid model: ${trimmed}` };
   }
 
+  // Normalize Google Gemini 3 IDs so catalog lookup matches (e.g. gemini-3-pro -> gemini-3-pro-preview).
+  let ref = resolved.ref;
+  if (ref.provider === "google" && ref.model) {
+    ref = { ...ref, model: normalizeGoogleModelId(ref.model) };
+  }
+
   const status = getModelRefStatus({
     cfg: params.cfg,
     catalog: params.catalog,
-    ref: resolved.ref,
+    ref,
     defaultProvider: params.defaultProvider,
     defaultModel: params.defaultModel,
   });
@@ -507,7 +513,7 @@ export function resolveAllowedModelRef(params: {
     return { error: `model not allowed: ${status.key}` };
   }
 
-  return { ref: resolved.ref, key: status.key };
+  return { ref, key: status.key };
 }
 
 export function resolveThinkingDefault(params: {

@@ -308,19 +308,28 @@ export async function applySessionsPatchToStore(params: {
         defaultModel: subagentModelHint ?? resolvedDefault.model,
       });
       if ("error" in resolved) {
-        return invalid(resolved.error);
+        // Requested model invalid or not allowed — use default so the request never fails.
+        applyModelOverrideToSessionEntry({
+          entry: next,
+          selection: {
+            provider: resolvedDefault.provider,
+            model: resolvedDefault.model,
+            isDefault: true,
+          },
+        });
+      } else {
+        const isDefault =
+          resolved.ref.provider === resolvedDefault.provider &&
+          resolved.ref.model === resolvedDefault.model;
+        applyModelOverrideToSessionEntry({
+          entry: next,
+          selection: {
+            provider: resolved.ref.provider,
+            model: resolved.ref.model,
+            isDefault,
+          },
+        });
       }
-      const isDefault =
-        resolved.ref.provider === resolvedDefault.provider &&
-        resolved.ref.model === resolvedDefault.model;
-      applyModelOverrideToSessionEntry({
-        entry: next,
-        selection: {
-          provider: resolved.ref.provider,
-          model: resolved.ref.model,
-          isDefault,
-        },
-      });
     }
   }
 
