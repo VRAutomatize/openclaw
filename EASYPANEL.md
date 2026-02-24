@@ -215,6 +215,19 @@ Reinicie o app após alterar o config. Se o EasyPanel usar outro IP/CIDR, ajuste
 
 O cliente enviou parâmetros de device pairing inválidos (nonce vazio). Recarregue a página e, na primeira conexão, use o token (Settings ou `#token=...`). Se o problema continuar, limpe o localStorage do site e tente de novo.
 
+### WhatsApp: QR carrega para sempre / no celular diz "não foi possível, verifique sua internet"
+
+Quando o gateway está em uma **VPS/servidor (datacenter)**, o WhatsApp pode **rejeitar** o pareamento ao escanear o QR: no celular aparece erro de conexão e no OpenClaw a tela fica em "carregando" porque a sessão nunca completa.
+
+**O que fazer:**
+
+1. **Escanear rápido** — O QR expira em poucos segundos. Clique em "Show QR", abra no celular **WhatsApp → Configurações → Aparelhos conectados → Conectar aparelho** e escaneie na hora.
+2. **Fazer o link em rede caseira** — Se mesmo assim falhar, faça o **link do WhatsApp uma vez no seu PC ou em uma máquina na sua rede** (gateway rodando localmente), onde o WhatsApp costuma aceitar. Depois copie a pasta de autenticação do WhatsApp (em `~/.openclaw` ou no volume, a pasta usada pelo canal WhatsApp) para o servidor/VPS e reinicie o gateway. Assim a sessão já vem “logada”.
+3. **Celular sem VPN** — Desative VPN ou proxy no celular ao escanear.
+4. **Conferir saída na VPS** — O gateway precisa de internet de saída para os servidores do WhatsApp. Teste: `curl -sI https://web.whatsapp.com` de dentro do container ou da VPS.
+
+Se depois do link (em casa ou na VPS) o WhatsApp desconectar sozinho, pode ser restrição do WhatsApp a IP de datacenter; aí o uso estável costuma ser com a sessão feita em rede residencial e depois copiada, ou com um túnel (ex.: Tailscale) para o gateway.
+
 ## Referências
 
 - [Docker (OpenClaw)](docs/install/docker.md) — setup local com Docker Compose
