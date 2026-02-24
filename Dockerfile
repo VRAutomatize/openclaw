@@ -48,6 +48,9 @@ RUN apt-get update && \
       libasound2 libasound2-dev alsa-utils ffmpeg && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
+# summarize CLI (persistent across container rebuilds; used by summarize skill)
+RUN npm install -g @steipete/summarize
+
 USER node
 COPY --chown=node:node . .
 RUN pnpm build

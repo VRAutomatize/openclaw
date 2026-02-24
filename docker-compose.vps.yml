@@ -1,0 +1,21 @@
+# Docker Compose for OpenClaw gateway on a VPS (manual deploy).
+# Usage:
+#   1. Build image: docker compose -f docker-compose.vps.yml build
+#   2. Up:         docker compose -f docker-compose.vps.yml up -d
+#
+# Persistence: state lives in the bind-mounted volume (OPENCLAW_STATE_DIR on host).
+# Set OPENCLAW_STATE_DIR and OPENCLAW_ENV_FILE to match your host paths, or
+# edit the paths below (volume and env_file).
+
+services:
+  openclaw:
+    image: openclaw-vra:latest
+    container_name: openclaw-standalone
+    restart: unless-stopped
+    ports:
+      - "18789:18789"
+    volumes:
+      # Bind mount: host state dir -> container ~/.openclaw (node user)
+      - "${OPENCLAW_STATE_DIR:-/home/admin/.openclaw}:/home/node/.openclaw"
+    env_file:
+      - "${OPENCLAW_ENV_FILE:-/home/admin/openclaw.env}"
