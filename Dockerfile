@@ -42,10 +42,10 @@ RUN if [ -n "$OPENCLAW_INSTALL_BROWSER" ]; then \
       rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*; \
     fi
 
-# ALSA libraries for sag (ElevenLabs TTS CLI) and other audio tools
+# ALSA + ffmpeg for sag (ElevenLabs TTS) and WhatsApp-compatible audio conversion
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-      libasound2 libasound2-dev alsa-utils && \
+      libasound2 libasound2-dev alsa-utils ffmpeg && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
 USER node
