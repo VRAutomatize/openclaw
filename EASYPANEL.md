@@ -33,13 +33,16 @@ Na aba **Environment** do serviço, defina:
 
 Sem `OPENCLAW_GATEWAY_BIND=lan`, o gateway fica em loopback e não é acessível fora do container.
 
-### 4. Volume persistente
+### 4. Volume persistente (obrigatório para não perder pairing)
 
-Para não perder config, credenciais e workspace ao recriar o container:
+Para **não** perder config, credenciais, **pairing de dispositivos** e workspace ao reiniciar ou fazer deploy:
 
-- **Volumes**: adicione um volume (Volume ou Bind)
+- **Volumes**: adicione um volume (Volume ou Bind) e **mantenha o mesmo volume** em todos os deploys.
 - **Container path**: `/home/node/.openclaw`
-- Assim persistem: `openclaw.json`, credentials, workspace, sessions, etc.
+- O gateway grava o estado de pairing em `.../devices/` (pending.json, paired.json). Se esse diretório não for persistido (volume novo, path errado ou sem volume), **toda reinicialização ou deploy** vai pedir pairing de novo.
+- Assim persistem: `openclaw.json`, credentials, **devices (pairing)**, workspace, sessions, etc.
+
+Se você montar o estado em outro path (ex.: `/data/.openclaw`), defina a variável de ambiente `OPENCLAW_STATE_DIR=/data/.openclaw` para o app usar esse diretório.
 
 ### 5. Deploy
 
@@ -124,7 +127,7 @@ Depois recarregue o dashboard e clique em **Connect**. Se pedir token, use o val
 | Build | Dockerfile (raiz do repo) |
 | Porta do app | 18789 |
 | Env obrigatório | `OPENCLAW_GATEWAY_TOKEN`, `OPENCLAW_GATEWAY_BIND=lan` |
-| Volume | `/home/node/.openclaw` (persistir config + workspace) |
+| Volume | `/home/node/.openclaw` (obrigatório: config, **pairing**, workspace) |
 
 ## Troubleshooting
 
@@ -152,6 +155,18 @@ A Control UI lê o token do hash, grava em localStorage e remove o hash da barra
 Se você não tiver mais o token, defina de novo `OPENCLAW_GATEWAY_TOKEN` no EasyPanel (Environment), reinicie o app e use esse novo valor.
 
 **Importante:** O token do gateway **não** é a chave da OpenAI, OpenRouter, etc. É um valor longo e aleatório que você define só para o OpenClaw (ex.: `openssl rand -hex 32`). Se na Overview aparecer algo que parece chave de API, troque pelo token correto.
+
+### "pairing required" toda vez que reinicio ou faço deploy
+
+Isso acontece quando o **estado de pairing** não está persistido. O gateway guarda dispositivos aprovados em `~/.openclaw/devices/` (no container: `/home/node/.openclaw/devices/`).
+
+**Confira:**
+
+1. **Volume** no EasyPanel: existe um volume (ou bind mount) com **Container path** = `/home/node/.openclaw`?
+2. **Mesmo volume em todo deploy**: ao fazer "Redeploy" ou "Update", o EasyPanel deve **reutilizar** esse volume, não criar um novo. Se o app foi recriado do zero (novo volume), o pairing volta ao zero.
+3. Se você usa outro path no container (ex.: `/data`), defina `OPENCLAW_STATE_DIR` com esse path (ex.: `OPENCLAW_STATE_DIR=/data/.openclaw`) e monte o volume nesse path.
+
+Depois de garantir o volume, aprove o dispositivo de novo (comandos abaixo). Nos próximos reinícios/deploys **com o mesmo volume**, não precisará aprovar de novo.
 
 ### "pairing required" (após o token estar certo)
 
