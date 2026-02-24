@@ -53,12 +53,23 @@ describe("resolveTranscriptPolicy", () => {
     expect(policy.validateAnthropicTurns).toBe(true);
   });
 
-  it("keeps OpenRouter on its existing turn-validation path", () => {
+  it("keeps OpenRouter on its existing turn-validation path for non-Anthropic models", () => {
     const policy = resolveTranscriptPolicy({
       provider: "openrouter",
       modelId: "openai/gpt-4.1",
       modelApi: "openai-completions",
     });
     expect(policy.validateAnthropicTurns).toBe(false);
+    expect(policy.repairToolUseResultPairing).toBe(false);
+  });
+
+  it("enables Anthropic-style repair and turn validation for OpenRouter with Claude", () => {
+    const policy = resolveTranscriptPolicy({
+      provider: "openrouter",
+      modelId: "anthropic/claude-sonnet-4",
+      modelApi: "openai-completions",
+    });
+    expect(policy.repairToolUseResultPairing).toBe(true);
+    expect(policy.validateAnthropicTurns).toBe(true);
   });
 });

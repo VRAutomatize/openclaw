@@ -63,6 +63,16 @@ function isAnthropicApi(modelApi?: string | null, provider?: string | null): boo
   return normalized === "anthropic";
 }
 
+/** OpenRouter/OpenCode routing to Anthropic/Claude still enforces Anthropic tool_use/tool_result pairing. */
+function isOpenRouterOrOpencodeAnthropic(provider?: string | null, modelId?: string | null): boolean {
+  const p = normalizeProviderId(provider ?? "");
+  if (p !== "openrouter" && p !== "opencode") {
+    return false;
+  }
+  const id = (modelId ?? "").toLowerCase();
+  return id.includes("anthropic") || id.includes("claude");
+}
+
 function isMistralModel(params: { provider?: string | null; modelId?: string | null }): boolean {
   const provider = normalizeProviderId(params.provider ?? "");
   if (provider === "mistral") {
@@ -102,13 +112,16 @@ export function resolveTranscriptPolicy(params: {
 
   const needsNonImageSanitize = isGoogle || isAnthropic || isMistral || isOpenRouterGemini;
 
+  const isOpenRouterAnthropic = isOpenRouterOrOpencodeAnthropic(provider, modelId);
+  const needsAnthropicToolPairing = isAnthropic || isOpenRouterAnthropic;
+
   const sanitizeToolCallIds = isGoogle || isMistral || isAnthropic;
   const toolCallIdMode: ToolCallIdMode | undefined = isMistral
     ? "strict9"
     : sanitizeToolCallIds
       ? "strict"
       : undefined;
-  const repairToolUseResultPairing = isGoogle || isAnthropic;
+  const repairToolUseResultPairing = isGoogle || needsAnthropicToolPairing;
   const sanitizeThoughtSignatures =
     isOpenRouterGemini || isGoogle ? { allowBase64Only: true, includeCamelCase: true } : undefined;
 
@@ -123,7 +136,7 @@ export function resolveTranscriptPolicy(params: {
     dropThinkingBlocks,
     applyGoogleTurnOrdering: !isOpenAi && isGoogle,
     validateGeminiTurns: !isOpenAi && isGoogle,
-    validateAnthropicTurns: !isOpenAi && (isAnthropic || isStrictOpenAiCompatible),
-    allowSyntheticToolResults: !isOpenAi && (isGoogle || isAnthropic),
+    validateAnthropicTurns: !isOpenAi && (isAnthropic || isStrictOpenAiCompatible || isOpenRouterAnthropic),
+    allowSyntheticToolResults: !isOpenAi && (isGoogle || needsAnthropicToolPairing),
   };
 }
