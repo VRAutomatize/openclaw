@@ -23,6 +23,7 @@ import {
   isChatStopCommandText,
   resolveChatRunExpiresAtMs,
 } from "../chat-abort.js";
+import { sanitizeImageBlocks } from "../../agents/tool-images.js";
 import { type ChatImageContent, parseMessageWithAttachments } from "../chat-attachments.js";
 import { stripEnvelopeFromMessage, stripEnvelopeFromMessages } from "../chat-sanitize.js";
 import { GATEWAY_CLIENT_CAPS, hasGatewayClientCap } from "../protocol/client-info.js";
@@ -720,12 +721,16 @@ export const chatHandlers: GatewayRequestHandlers = {
     let parsedImages: ChatImageContent[] = [];
     if (normalizedAttachments.length > 0) {
       try {
+        // Allow larger uploads (20 MB); we resize to provider limit (5 MB) below.
         const parsed = await parseMessageWithAttachments(inboundMessage, normalizedAttachments, {
-          maxBytes: 5_000_000,
+          maxBytes: 20 * 1024 * 1024,
           log: context.logGateway,
         });
         parsedMessage = parsed.message;
-        parsedImages = parsed.images;
+        const { images: resized } = await sanitizeImageBlocks(parsed.images, "chat", {
+          maxBytes: 5 * 1024 * 1024,
+        });
+        parsedImages = resized;
       } catch (err) {
         respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, String(err)));
         return;
