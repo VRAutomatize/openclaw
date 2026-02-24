@@ -99,6 +99,24 @@ Para rodar com **OpenRouter** como provedor principal (uma API key, vários mode
 
 Reinicie o app após alterar o config (ou aguarde o hot reload do gateway).
 
+### Depois de um rebuild (só quando der "pairing required")
+
+Se você **manteve o mesmo volume** em `/home/node/.openclaw`, o pairing e a config costumam continuar válidos — não precisa aprovar de novo. Só quando o volume é **novo** (ou você trocou de volume) aparece "pairing required" de novo.
+
+**Comandos (só nesse caso):** abra o **Shell** do container do app no EasyPanel e rode:
+
+```bash
+node dist/index.js devices list
+```
+
+Anote o `requestId` do pedido pendente e aprove:
+
+```bash
+node dist/index.js devices approve <requestId>
+```
+
+Depois recarregue o dashboard e clique em **Connect**. Se pedir token, use o valor de `OPENCLAW_GATEWAY_TOKEN` do EasyPanel (Settings ou URL com `#token=...`).
+
 ## Resumo rápido
 
 | Item | Valor |
