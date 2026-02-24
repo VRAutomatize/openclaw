@@ -1143,6 +1143,7 @@
                       "gateway/gateway-lock",
                       "gateway/background-process",
                       "gateway/multiple-gateways",
+                      "gateway/same-host-exec",
                       "gateway/troubleshooting"
                     ]
                   },
