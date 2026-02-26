@@ -23,9 +23,13 @@ export function resolveWhatsAppOutboundTarget(params: {
   if (trimmed) {
     const normalizedTo = normalizeWhatsAppTarget(trimmed);
     if (!normalizedTo) {
+      const looksLikeGroupJid = /@g\.us$/i.test(trimmed);
+      const hint = looksLikeGroupJid
+        ? "WhatsApp group JID must be numeric (e.g. 120363423629363956@g.us). From session key agent:main:whatsapp:group:NNN@g.us use NNN@g.us as target."
+        : "<E.164|group JID>";
       return {
         ok: false,
-        error: missingTargetError("WhatsApp", "<E.164|group JID>"),
+        error: missingTargetError("WhatsApp", hint),
       };
     }
     if (isWhatsAppGroupJid(normalizedTo)) {
