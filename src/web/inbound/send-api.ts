@@ -23,7 +23,20 @@ export function createWebSendApi(params: {
     sendPresenceUpdate: (presence: WAPresence, jid?: string) => Promise<unknown>;
   };
   defaultAccountId: string;
+  /** Optional: fetch group metadata before sending to a group. Helps avoid item-not-found when the chat is not yet in the store. */
+  ensureGroupLoaded?: (jid: string) => Promise<unknown>;
 }) {
+  const ensureGroup = async (jid: string) => {
+    if (!jid.endsWith("@g.us") || !params.ensureGroupLoaded) {
+      return;
+    }
+    try {
+      await params.ensureGroupLoaded(jid);
+    } catch {
+      // Best-effort; send may still succeed
+    }
+  };
+
   return {
     sendMessage: async (
       to: string,
@@ -33,6 +46,7 @@ export function createWebSendApi(params: {
       sendOptions?: ActiveWebSendOptions,
     ): Promise<{ messageId: string }> => {
       const jid = toWhatsappJid(to);
+      await ensureGroup(jid);
       let payload: AnyMessageContent;
       if (mediaBuffer && mediaType) {
         if (mediaType.startsWith("image/")) {
@@ -63,7 +77,20 @@ export function createWebSendApi(params: {
       } else {
         payload = { text };
       }
-      const result = await params.sock.sendMessage(jid, payload);
+      let result: unknown;
+      try {
+        result = await params.sock.sendMessage(jid, payload);
+      } catch (sendErr) {
+        const msg = String((sendErr as Error)?.message ?? sendErr);
+        if (/item-not-found|404|not found/i.test(msg)) {
+          throw new Error(
+            jid.endsWith("@g.us")
+              ? `Grupo não encontrado (item-not-found). Confirme que o número está no grupo e use o JID numérico (ex: 120363423629363956@g.us).`
+              : `Chat não encontrado (item-not-found). Verifique o número ou JID.`,
+          );
+        }
+        throw sendErr;
+      }
       const accountId = sendOptions?.accountId ?? params.defaultAccountId;
       recordWhatsAppOutbound(accountId);
       const messageId = resolveOutboundMessageId(result);
@@ -74,6 +101,7 @@ export function createWebSendApi(params: {
       poll: { question: string; options: string[]; maxSelections?: number },
     ): Promise<{ messageId: string }> => {
       const jid = toWhatsappJid(to);
+      await ensureGroup(jid);
       const result = await params.sock.sendMessage(jid, {
         poll: {
           name: poll.question,
