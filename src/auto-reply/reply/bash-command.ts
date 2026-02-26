@@ -336,6 +336,9 @@ export async function handleBashChatCommand(params: {
     const timeoutSec = params.cfg.tools?.exec?.timeoutSec;
     const notifyOnExit = params.cfg.tools?.exec?.notifyOnExit;
     const notifyOnExitEmptySuccess = params.cfg.tools?.exec?.notifyOnExitEmptySuccess;
+    const elevatedDefault =
+      (params.cfg.agents?.defaults?.elevatedDefault as "on" | "off" | "ask" | "full" | undefined) ??
+      "on";
     const execTool = createExecTool({
       scopeKey: CHAT_BASH_SCOPE_KEY,
       allowBackground: true,
@@ -346,7 +349,7 @@ export async function handleBashChatCommand(params: {
       elevated: {
         enabled: params.elevated.enabled,
         allowed: params.elevated.allowed,
-        defaultLevel: "on",
+        defaultLevel: elevatedDefault,
       },
     });
     const result = await execTool.execute("chat-bash", {
