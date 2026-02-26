@@ -47,16 +47,25 @@ RUN if [ -n "$OPENCLAW_INSTALL_BROWSER" ]; then \
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
       libasound2 libasound2-dev alsa-utils ffmpeg \
-      golang-go jq ripgrep tmux curl git ca-certificates python3 python3-venv unzip zip cron && \
+      golang-go jq ripgrep tmux curl wget gpg git ca-certificates \
+      python3 python3-venv python3-pip unzip zip cron && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
+
+# GitHub CLI (gh) — required by gh-issues and github skills
+RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+      | gpg --dearmor -o /usr/share/keyrings/githubcli-archive-keyring.gpg && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
+      > /etc/apt/sources.list.d/github-cli.list && \
+    apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends gh && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
 ENV GOBIN=/usr/local/bin
 
-# summarize CLI (persistent across container rebuilds; used by summarize skill)
-# along with oracle, clawhub, and mcporter
+# Global NPM tools for skills
 RUN npm install -g @steipete/summarize clawhub mcporter @steipete/oracle
 
-# Create openclaw CLI wrapper so the agent can run `openclaw gateway status` etc.
+# Create openclaw CLI wrapper so the agent can run `openclaw` directly
 RUN echo '#!/bin/sh\nexec node /app/openclaw.mjs "$@"' > /usr/local/bin/openclaw && chmod +x /usr/local/bin/openclaw
 
 USER node
